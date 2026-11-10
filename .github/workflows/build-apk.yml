@@ -1,14 +1,79 @@
-       - name: Build APK
+name: Build N3MSTORE APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Extract Project
         shell: bash
         run: |
-          set -o pipefail
-          flutter build apk --release -v 2>&1 | tee build-apk.log
+          mkdir -p app
+          unzip -o N3MSTORE_Aplikasi_Siap_Build.zip -d app
+          echo "=== PROJECT FILES ==="
+          find app -name pubspec.yaml
+
+      - name: Locate Project
+        shell: bash
+        run: |
+          PROJECT=$(find app -name pubspec.yaml -print -quit)
+
+          if [ -z "$PROJECT" ]; then
+            echo "ERROR: pubspec.yaml tidak ditemukan"
+            exit 1
+          fi
+
+          echo "PROJECT_DIR=$(dirname "$PROJECT")" >> "$GITHUB_ENV"
+
+      - name: Generate Android
+        run: flutter create . --platforms=android --org com.n3mstore
         working-directory: ${{ env.PROJECT_DIR }}
 
-      - name: Upload Build Log
-        if: always()
+      - name: Install Dependencies
+        run: flutter pub get -v
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Build APK
+        run: flutter build apk --release -v
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: N3MSTORE-BUILD-LOG
-          path: ${{ env.PROJECT_DIR }}/build-apk.log
+          name: N3MSTORE-APK
+          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload Error Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: N3MSTORE-ERROR-LOGS
+          path: |
+            ${{ env.PROJECT_DIR }}/.dart_tool/
+            ${{ env.PROJECT_DIR }}/build/
           if-no-files-found: ignore
