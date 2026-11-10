@@ -1,6 +1,7 @@
-       - name: Build APK
+      - name: Build APK
         shell: bash
         run: |
+          set -o pipefail
           flutter build apk --release -v 2>&1 | tee build-apk.log
         working-directory: ${{ env.PROJECT_DIR }}
 
