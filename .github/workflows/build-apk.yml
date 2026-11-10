@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -28,16 +28,19 @@ jobs:
           channel: stable
 
       - name: Generate Android
+        working-directory: n3mstore_flutter
         run: flutter create . --platforms=android --org com.n3mstore
 
       - name: Install dependencies
+        working-directory: n3mstore_flutter
         run: flutter pub get
 
       - name: Build APK
+        working-directory: n3mstore_flutter
         run: flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: N3MSTORE-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: n3mstore_flutter/build/app/outputs/flutter-apk/app-release.apk
