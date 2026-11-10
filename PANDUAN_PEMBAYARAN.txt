@@ -1,0 +1,22 @@
+N3MSTORE - METODE PEMBAYARAN
+
+Metode pembayaran default yang sudah dimasukkan ke aplikasi:
+1. DANA
+   Nomor: 0882008839182
+   Nama: Nandy Febrya Nova Pratama
+2. QRIS
+   Nama merchant: n3mcoffee
+   NMID: ID1026593068855
+   Gambar QRIS: assets/qris_n3mstore.jpeg
+
+Jika dokumen Firestore settings/payment belum ada, aplikasi menggunakan data default di atas.
+Jika dokumen settings/payment sudah ada, data metode pembayaran dari Firestore akan digunakan.
+Admin wajib memeriksa dana masuk secara manual sebelum mengubah status pembayaran menjadi terverifikasi.
+
+CATATAN BUILD:
+Ini adalah source Flutter yang telah diperbarui, belum APK terkompilasi.
+Untuk menghasilkan APK diperlukan Flutter SDK, Android SDK, JDK, serta konfigurasi Firebase (google-services.json dan FlutterFire).
+Ikuti README.md untuk setup Firebase, lalu jalankan:
+  flutter pub get
+  flutter build apk --release
+APK hasil build berada di build/app/outputs/flutter-apk/app-release.apk
