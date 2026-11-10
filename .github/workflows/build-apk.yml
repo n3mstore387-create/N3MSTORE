@@ -4,7 +4,8 @@ name: Build N3MSTORE APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -17,27 +18,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract Project
+      - name: Find Project ZIP
         run: |
-          mkdir -p app
-          unzip -o N3MSTORE_Aplikasi_Siap_Build.zip -d app
-          echo "Isi folder:"
-          find app -maxdepth 3 -name pubspec.yaml
+          ZIP=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
+          if [ -z "$ZIP" ]; then
+            echo "File ZIP tidak ditemukan"
+            exit 1
+          fi
+          mkdir app
+          unzip -o "$ZIP" -d app
 
       - name: Find Flutter Project
         run: |
-          PROJECT_DIR=$(dirname "$(find app -name pubspec.yaml -print -quit)")
-          if [ -z "$PROJECT_DIR" ] || [ "$PROJECT_DIR" = "." ]; then
-            echo "pubspec.yaml tidak ditemukan!"
+          PROJECT=$(find app -name pubspec.yaml -print -quit)
+          if [ -z "$PROJECT" ]; then
+            echo "pubspec.yaml tidak ditemukan"
             exit 1
           fi
-          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+          echo "PROJECT_DIR=$(dirname "$PROJECT")" >> "$GITHUB_ENV"
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
