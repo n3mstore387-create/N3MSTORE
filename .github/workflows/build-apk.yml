@@ -1,3 +1,4 @@
+```yaml
 name: Build N3MSTORE APK
 
 on:
@@ -18,8 +19,19 @@ jobs:
 
       - name: Extract Project
         run: |
-          mkdir app
+          mkdir -p app
           unzip -o N3MSTORE_Aplikasi_Siap_Build.zip -d app
+          echo "Isi folder:"
+          find app -maxdepth 3 -name pubspec.yaml
+
+      - name: Find Flutter Project
+        run: |
+          PROJECT_DIR=$(dirname "$(find app -name pubspec.yaml -print -quit)")
+          if [ -z "$PROJECT_DIR" ] || [ "$PROJECT_DIR" = "." ]; then
+            echo "pubspec.yaml tidak ditemukan!"
+            exit 1
+          fi
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -33,19 +45,20 @@ jobs:
           channel: stable
 
       - name: Generate Android
-        working-directory: app
         run: flutter create . --platforms=android --org com.n3mstore
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Install Dependencies
-        working-directory: app
         run: flutter pub get
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Build APK
-        working-directory: app
         run: flutter build apk --release
+        working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: N3MSTORE-APK
-          path: app/build/app/outputs/flutter-apk/app-release.apk
+          path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
+```
