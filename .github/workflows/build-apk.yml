@@ -16,8 +16,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Extract Project
+        run: |
+          mkdir app
+          unzip -o N3MSTORE_Aplikasi_Siap_Build.zip -d app
+
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
@@ -28,19 +33,19 @@ jobs:
           channel: stable
 
       - name: Generate Android
-        working-directory: n3mstore_flutter
+        working-directory: app
         run: flutter create . --platforms=android --org com.n3mstore
 
-      - name: Install dependencies
-        working-directory: n3mstore_flutter
+      - name: Install Dependencies
+        working-directory: app
         run: flutter pub get
 
       - name: Build APK
-        working-directory: n3mstore_flutter
+        working-directory: app
         run: flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: N3MSTORE-APK
-          path: n3mstore_flutter/build/app/outputs/flutter-apk/app-release.apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
