@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
@@ -30,23 +30,18 @@ jobs:
           channel: stable
 
       - name: Extract Project
-        shell: bash
         run: |
           mkdir -p app
           unzip -o N3MSTORE_Aplikasi_Siap_Build.zip -d app
-          echo "=== PROJECT FILES ==="
-          find app -name pubspec.yaml
 
-      - name: Locate Project
+      - name: Locate Flutter Project
         shell: bash
         run: |
           PROJECT=$(find app -name pubspec.yaml -print -quit)
-
           if [ -z "$PROJECT" ]; then
-            echo "ERROR: pubspec.yaml tidak ditemukan"
+            echo "pubspec.yaml tidak ditemukan"
             exit 1
           fi
-
           echo "PROJECT_DIR=$(dirname "$PROJECT")" >> "$GITHUB_ENV"
 
       - name: Generate Android
@@ -54,11 +49,14 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Install Dependencies
-        run: flutter pub get -v
+        run: flutter pub get
         working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Build APK
-        run: flutter build apk --release -v
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter build apk --release -v 2>&1 | tee build-apk.log
         working-directory: ${{ env.PROJECT_DIR }}
 
       - name: Upload APK
@@ -68,12 +66,10 @@ jobs:
           name: N3MSTORE-APK
           path: ${{ env.PROJECT_DIR }}/build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Upload Error Logs
-        if: failure()
+      - name: Upload Build Log
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: N3MSTORE-ERROR-LOGS
-          path: |
-            ${{ env.PROJECT_DIR }}/.dart_tool/
-            ${{ env.PROJECT_DIR }}/build/
+          name: N3MSTORE-BUILD-LOG
+          path: ${{ env.PROJECT_DIR }}/build-apk.log
           if-no-files-found: ignore
